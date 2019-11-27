@@ -1,40 +1,9 @@
+:- module(transformer, [transformAll/0, markForTransformation/1, op(900, fy, not)]).
+
 :- dynamic isRule/2.
 :- dynamic isHeadPredicate/1.
 :- dynamic isPredicate/1.
 :- dynamic isAbducible/1.
-
-:- op(900, fy, not).
-
-build(Filename) :-
-    atom_concat(Filename, '.in', Fin),
-    atom_concat(Filename, '.pl', Fout),
-    processInput(Fin, Fout).
-
-cleardatabase :-
-    retractall(isRule(_, _)),
-    retractall(isHeadPredicate(_)),
-    retractall(isPredicate(_)),
-    retractall(isAbducible(_)).
-
-
-
-processInput(Fin, Fout) :-
-    see(Fin),
-    tell(Fout),
-    processLines,
-    seen,
-    told.
-
-processLines :-
-    read(Line),
-    (
-        (Line = end_of_file, !, postProcess);
-        (markForTransformation(Line), processLines)
-    ).
-
-postProcess :-
-    write(':- [utils].'), nl,
-    transformAll.
 
 transformAll :-
     apostropheTransformation,
@@ -110,11 +79,13 @@ plusTransformation :-
 plusTransformation.
 
 minusTransformation :-
-    isPredicate(Pred/Arity),
+    isHeadPredicate(Pred/Arity),
     findall(Rule, getRule(Pred, Rule), RuleList),
     length(RuleList, M),
     writeMinus(Pred/Arity, M),
-    starTransformation(RuleList).
+    starTransformation(RuleList),
+    fail.
+minusTransformation.
 
 starTransformation(RuleList) :-
     writeStar(RuleList).
@@ -184,8 +155,6 @@ writeApostropheBody([Pred | PredList], Num) :-
     ),
     writeApostropheBody(PredList, NumPlusOne).
 
-
-
 writePlus(Pred/Arity) :- 
     write(Pred), write('('), writeX(Arity), write('I, O) :- '),
     write(Pred), write('_ab('), writeX(Arity), write('E), produce_context(O, I, E).'), nl.
@@ -194,7 +163,7 @@ writeMinus(Pred/Arity, M) :-
     write('not_'), write(Pred), write('('), writeX(Arity), write('E_0, E_'), write(M), write(') :- '),
     writeMinusBody(Pred/Arity, M, 0), nl.
 
-writeMinusBody(_, M, M) :- write('.').
+writeMinusBody(_, M, M) :- !, write('.').
 writeMinusBody(Pred/Arity, M, Num) :- 
     NumPlusOne is Num + 1,
     (Num = 0, !; write(', ')),
