@@ -22,7 +22,9 @@ markForTransformation(H :- B) :-
     markPredicates(BList).
 
 markForTransformation(H) :-
-    markRule(H, []).
+    markRule(H, []),
+    markHeadPredicate(H),
+    markPredicate(H).
 
 markRule(H, B) :-
     \+ isRule(H, B),
@@ -84,6 +86,11 @@ minusTransformation :-
     length(RuleList, M),
     writeMinus(Pred/Arity, M),
     starTransformation(RuleList),
+    fail.
+minusTransformation :-
+    isPredicate(Pred/Arity),
+    \+ isHeadPredicate(Pred/Arity),
+    writeMinus(Pred/Arity, 0),
     fail.
 minusTransformation.
 
@@ -158,6 +165,9 @@ writeApostropheBody([Pred | PredList], Num) :-
 writePlus(Pred/Arity) :- 
     write(Pred), write('('), writeX(Arity), write('I, O) :- '),
     write(Pred), write('_ab('), writeX(Arity), write('E), produce_context(O, I, E).'), nl.
+
+writeMinus(Pred/Arity, 0) :-
+    !, write('not_'), write(Pred), write('('), writeX(Arity), write('I, I).'), nl.
 
 writeMinus(Pred/Arity, M) :-
     write('not_'), write(Pred), write('('), writeX(Arity), write('E_0, E_'), write(M), write(') :- '),
