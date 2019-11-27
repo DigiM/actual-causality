@@ -1,5 +1,8 @@
 :- [transformer].
 
+:- dynamic isNonAbductive/1.
+:- dynamic isTransforming/0.
+
 build(Filename) :-
     cleardatabase,
     atom_concat(Filename, '.in', Fin),
@@ -23,9 +26,31 @@ processLines :-
     read(Line),
     (
         (Line = end_of_file, !, postProcess);
-        (markForTransformation(Line), processLines)
+        (processLine(Line), processLines)
     ).
+
+processLine(beginProlog) :-
+    assert(isTransforming).
+processLine(endProlog) :-
+    retract(isTransforming).
+
+processLine(abds(AbdList)) :-
+    markForTransformation(abds(AbdList)).
+
+processLine(Line) :-
+    isTransforming,
+    markForTransformation(Line).
+
+processLine(Line) :-
+    assert(isNonAbductive(Line)).
 
 postProcess :-
     write(':- [utils].'), nl,
+    writeNonAbductive,
     transformAll.
+
+writeNonAbductive :-
+    isNonAbductive(Rule),
+    write(Rule), write('.'), nl,
+    fail.
+writeNonAbductive.
