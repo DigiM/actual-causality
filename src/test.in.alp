@@ -1,0 +1,15 @@
+abds([p/0, b/0, t/0]).
+
+:- dynamic isActualWorld/1.
+markActualWorld :- \+ isActualWorld(p), assert(isActualWorld(p)), fail.
+markActualWorld :- \+ isActualWorld(b), assert(isActualWorld(b)), fail.
+markActualWorld :- \+ isActualWorld(t), assert(isActualWorld(t)), fail.
+
+markActualWorld.
+
+beginProlog.
+    h <- p,t.
+    h <- not p,b.
+    d <- h.
+endProlog.
+

@@ -1,0 +1,8 @@
+world([p, b, t]).
+exovars([p, b, t]).
+
+beginClausalTheory.
+    p, t => h.
+    not p, b => h.
+    h => d.
+endClausalTheory.
